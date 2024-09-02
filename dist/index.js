@@ -26,7 +26,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 api_1.default.getAccessToken().then(() => {
     app.get("/ping", (req, res) => res.send("pong " + Date.now()));
     app.get("/install", (req, res) => {
-        console.log(req.body);
+        console.log(req.body.leads);
         res.send("OK");
     });
     app.post("/switch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -58,17 +58,31 @@ api_1.default.getAccessToken().then(() => {
                     "price": budget
                 }];
             if (budget !== Number(req.body.leads.update[0].price)) {
+                let tasks = yield api_1.default.getTasks(Number(req.body.leads.update[0].id));
                 yield api_1.default.updateDeals(updateDeal);
-                const a = [
-                    {
-                        "task_type_id": 4,
-                        "text": "Проверить бюджет",
-                        "complete_till": Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000),
-                        "entity_id": Number(req.body.leads.update[0].id),
-                        "entity_type": "leads",
-                    }
-                ];
-                yield api_1.default.createTask(a);
+                if (tasks.length === 0) {
+                    const a = [
+                        {
+                            "task_type_id": 3525410,
+                            "text": "Проверить бюджет",
+                            "complete_till": Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000),
+                            "entity_id": Number(req.body.leads.update[0].id),
+                            "entity_type": "leads",
+                        }
+                    ];
+                    yield api_1.default.createTask(a);
+                }
+            }
+            res.status(200).send('Ok');
+        }
+        catch (error) {
+            res.status(500).send('Error');
+        }
+    }));
+    app.post("/not", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (req.body.task.update[0].action_close == 1 && req.body.task.update[0].text == 'Проверить бюджет') {
+                yield api_1.default.addNote(Number(req.body.task.update[0].element_id));
             }
             res.status(200).send('Ok');
         }

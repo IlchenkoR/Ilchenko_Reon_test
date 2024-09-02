@@ -201,17 +201,47 @@ class Api {
 	});
 
 
-	//Создание задачи
-	public getTasks = this.authChecker(() => {
+	//Получение задач
+	public getTasks = this.authChecker((entity) => {
 		return axios
 		  .get(
-			`${this.ROOT_PATH}/api/v4/tasks?[0].status`,
+			`${this.ROOT_PATH}/api/v4/tasks?filter[task_type][]=3525410&filter[is_completed]=0&filter[entity_id][]=${entity}`,
 			{
 			  headers: {
 				Authorization: `Bearer ${this.access_token}`,
 			  },
 			}
 		  )
+		  .then((res: AxiosResponse) => {
+			if (res.data && res.data._embedded && Array.isArray(res.data._embedded.tasks)) {
+			  return res.data._embedded.tasks;
+			} else {
+			  return [];
+			}
+		  })
+		  .catch((error) => {
+			logger.error("Ошибка при получении задач:", error);
+			throw error;
+		  });
+	});
+
+	// Добавление примечания
+	public addNote = this.authChecker((entity_id: number) => {
+		return axios.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`, {
+			'notes': [
+				{
+					'note_type': 4,
+					'params': {
+						'text': "Бюджет проверен, ошибок нет"
+					}
+					
+				}
+			]
+		},{
+			headers: {
+				Authorization: `Bearer ${this.access_token}`,
+			},
+		});
 	});
 
 

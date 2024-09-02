@@ -137,10 +137,39 @@ class Api {
                 },
             });
         });
-        //Создание задачи
-        this.getTasks = this.authChecker(() => {
+        //Получение задач
+        this.getTasks = this.authChecker((entity) => {
             return axios_1.default
-                .get(`${this.ROOT_PATH}/api/v4/tasks?[0].status`, {
+                .get(`${this.ROOT_PATH}/api/v4/tasks?filter[task_type][]=3525410&filter[is_completed]=0&filter[entity_id][]=${entity}`, {
+                headers: {
+                    Authorization: `Bearer ${this.access_token}`,
+                },
+            })
+                .then((res) => {
+                if (res.data && res.data._embedded && Array.isArray(res.data._embedded.tasks)) {
+                    return res.data._embedded.tasks;
+                }
+                else {
+                    return [];
+                }
+            })
+                .catch((error) => {
+                logger_1.default.error("Ошибка при получении задач:", error);
+                throw error;
+            });
+        });
+        // Добавление примечания
+        this.addNote = this.authChecker((entity_id) => {
+            return axios_1.default.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`, {
+                'notes': [
+                    {
+                        'note_type': 4,
+                        'params': {
+                            'text': "Бюджет проверен, ошибок нет"
+                        }
+                    }
+                ]
+            }, {
                 headers: {
                     Authorization: `Bearer ${this.access_token}`,
                 },
