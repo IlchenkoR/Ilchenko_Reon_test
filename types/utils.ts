@@ -4,9 +4,20 @@
  *  - общего назначения;
  */
 
-const fs = require("fs");
-const logger = require("./logger");
+import fs from 'fs';
+import logger from './logger';
 
+interface CustomFieldValue {
+	value: any;
+	enum_id?: number;
+  }
+
+
+interface CustomField {
+	field_id?: number;
+	id?: number;
+	values: CustomFieldValue[];
+	}
 /**
  * Функция извлекает значение из id поля, массива полей custom_fields сущности amoCRM
  *
@@ -14,7 +25,7 @@ const logger = require("./logger");
  * @param {*} fieldId - id поля из которого нужно получить значение;
  * @returns значение поля
  */
-const getFieldValue = (customFields, fieldId) => {
+const getFieldValue = (customFields: CustomField[] | undefined, fieldId: number) => {
 	const field = customFields
 		? customFields.find((item) => String(item.field_id || item.id) === String(fieldId))
 		: undefined;
@@ -30,7 +41,7 @@ const getFieldValue = (customFields, fieldId) => {
  * @param {*} fieldId - id поля из которого нужно получить значения;
  * @returns массив значений поля
  */
-const getFieldValues = (customFields, fieldId) => {
+const getFieldValues = (customFields: CustomField[] | undefined, fieldId: number) => {
 	const field = customFields
 		? customFields.find((item) => String(item.field_id || item.id) === String(fieldId))
 		: undefined;
@@ -45,7 +56,7 @@ const getFieldValues = (customFields, fieldId) => {
  * @param {*} enum_id - В случае, если поле списковое или мультисписковое, то для указания нужного значения указывается данный параметр, т.е. id - варианта списка;
  * @returns типовой объект с данными о поле, который необходимо передать в amoCRM.
  */
-const makeField = (field_id, value, enum_id) => {
+const makeField = (field_id: number, value: any, enum_id: number) => {
 	if (value === undefined || value === null) {
 		return undefined;
 	}
@@ -67,13 +78,13 @@ const makeField = (field_id, value, enum_id) => {
  * @param {*} chunkSize - размер chunkSize
  * @param {*} operationName - название операции
  */
-const bulkOperation = async (
-	reqest,
-	data,
-	chunkSize,
+const bulkOperation = async <T>(
+	reqest: (data: T[]) => Promise<void>,
+	data: T[],
+	chunkSize: number,
 	operationName = "bulk"
 ) => {
-	let failed = [];
+	let failed: T[] = [];
 	if (data.length) {
 		logger.debug(`Старт операции ${operationName}`);
 		try {
@@ -107,7 +118,7 @@ const bulkOperation = async (
  * @param {*} limit - лимит на количество элементов в ответе (по дефолту - 200)
  * @returns [ ...elements ] все элементы сущности аккаунта
  */
-const getAllPages = async (request, page = 1, limit = 200) => {
+const getAllPages = async <T>(request:(params: {page: number, limit: number}) => Promise<T[]>, page = 1, limit = 200): Promise<T[]> => {
 	try {
 		console.log(`Загрузка страницы ${page}`);
 		const res = await request({ page, limit });
@@ -118,6 +129,7 @@ const getAllPages = async (request, page = 1, limit = 200) => {
 		return res;
 	} catch (e) {
 		logger.error(e);
+		return []
 	}
 };
 
@@ -127,15 +139,15 @@ const getAllPages = async (request, page = 1, limit = 200) => {
  * @param {*} tel - String
  * @returns String | undefined
  */
-const getClearPhoneNumber = (tel) => {
+const getClearPhoneNumber = (tel: string) => {
 	return tel ? tel.split("").filter(item => new RegExp(/\d/).test(item)).join("") : undefined;
 };
 
-module.exports = {
+export {
 	getFieldValue,
 	getFieldValues,
 	makeField,
 	bulkOperation,
 	getAllPages,
 	getClearPhoneNumber
-};
+  };
