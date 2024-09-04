@@ -7,20 +7,26 @@ import api from './types/api'
 import logger from './types/logger';
 import config from './types/config';
 import calculateSum from './types/calculator'
-import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError } from './types/interfaces';
+import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError } from './types/interface';
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-api.getAccessToken().then(() => {
-	app.get("/ping", (req: Request, res: Response) => res.send("pong " + Date.now()));
+app.get("/install", (req: Request, res: Response) => {
+	const code  = String(req.query.code)
+	const ref = String(req.query.referer).split('.')[0]
+	res.send("Widget installed")
+	if(code){
+		config.AUTH_CODE = code
+		config.SUB_DOMAIN = ref
+	}
+	console.log(config)
+	api.getAccessToken()
+});
 
-	app.get("/install", (req: Request, res: Response) => {
-		console.log(req.body.leads);
-		res.send("Widget installed");
-	});
+	app.get("/ping", (req: Request, res: Response) => res.send("pong " + Date.now()));
 
 	app.get("/uninstall", (req: Request, res: Response) => {
 		console.log(req.body.leads);
@@ -112,4 +118,3 @@ api.getAccessToken().then(() => {
 	});
 
 	app.listen(config.PORT, () => logger.debug("Server started on ", config.PORT));
-});

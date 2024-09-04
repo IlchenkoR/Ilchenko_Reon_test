@@ -21,21 +21,24 @@ const AMO_TOKEN_PATH = "amo_token.json";
 
 const LIMIT = 200;	
 
-interface Token {
+type Token = {
 	access_token: string;
 	refresh_token: string;
   }
   
-  interface Filters {
+type Filters = {
 	[key: string]: any;
   }
 
 class Api {
 	public access_token: string | null = null;
     public refresh_token: string | null = null;
-    public readonly ROOT_PATH: string = `https://${config.SUB_DOMAIN}.amocrm.ru`;
-	
+    public ROOT_PATH: string = ``;
 
+	public setPath = () => {
+		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
+	}
+	
 	public authChecker = (request: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> => {
 		return (...args: any[]): Promise<any> => {
 			if (!this.access_token) {
@@ -60,6 +63,7 @@ class Api {
 	};
 
 	public requestAccessToken = (): Promise<Token> => {
+		this.setPath()
 		return axios
 			.post(`${this.ROOT_PATH}/oauth2/access_token`, {
 				client_id: config.CLIENT_ID,
@@ -73,7 +77,7 @@ class Api {
 				return res.data;
 			})
 			.catch((err) => {
-				logger.error(err.response.data);
+				logger.error(err.message);
 				throw err;
 			});
 	};
