@@ -160,16 +160,14 @@ class Api {
         });
         // Добавление примечания
         this.addNote = this.authChecker((entity_id) => {
-            return axios_1.default.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`, {
-                'notes': [
-                    {
-                        'note_type': 4,
-                        'params': {
-                            'text': "Бюджет проверен, ошибок нет"
-                        }
+            return axios_1.default.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`, [
+                {
+                    "note_type": "common",
+                    "params": {
+                        "text": "Бюджет проверен, ошибок нет"
                     }
-                ]
-            }, {
+                }
+            ], {
                 headers: {
                     Authorization: `Bearer ${this.access_token}`,
                 },

@@ -27,9 +27,16 @@ api_1.default.getAccessToken().then(() => {
     app.get("/ping", (req, res) => res.send("pong " + Date.now()));
     app.get("/install", (req, res) => {
         console.log(req.body.leads);
-        res.send("OK");
+        res.send("Widget installed");
+    });
+    app.get("/uninstall", (req, res) => {
+        console.log(req.body.leads);
+        res.send("Widget uninstalled");
     });
     app.post("/switch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c;
+        const { id: leadsId, custom_fields, price: leadsPrice } = req.body.leads.update[0];
+        const [{ id: fieldId, values }] = custom_fields;
         try {
             const map = new Map([
                 [25661, 20707],
@@ -39,13 +46,15 @@ api_1.default.getAccessToken().then(() => {
                 [25669, 48675]
             ]);
             const services = [];
-            if (req.body.leads.update[0].custom_fields[0].id == '48677') {
-                req.body.leads.update[0].custom_fields[0].values.forEach((element) => {
+            if (fieldId == '48677') {
+                values.forEach((element) => {
                     services.push(Number(element.enum));
                 });
             }
-            const deal = (yield api_1.default.getDeal(Number(req.body.leads.update[0].id), ["contacts"]))._embedded.contacts[0].id;
-            const price = (yield api_1.default.getContact(Number(deal))).custom_fields_values;
+            const dealResponse = yield api_1.default.getDeal(Number(leadsId), ["contacts"]);
+            const deal = dealResponse._embedded.contacts[0].id;
+            const contactResponse = yield api_1.default.getContact(Number(deal));
+            const price = contactResponse.custom_fields_values;
             const purchasedServices = {};
             price.forEach((element) => {
                 if ([...map.values()].includes(element.field_id)) {
@@ -54,29 +63,33 @@ api_1.default.getAccessToken().then(() => {
             });
             const budget = (0, calculator_1.default)(services, purchasedServices, map);
             const updateDeal = [{
-                    "id": Number(req.body.leads.update[0].id),
+                    "id": Number(leadsId),
                     "price": budget
                 }];
-            if (budget !== Number(req.body.leads.update[0].price)) {
-                let tasks = yield api_1.default.getTasks(Number(req.body.leads.update[0].id));
+            if (budget !== Number(leadsPrice)) {
+                let tasks = yield api_1.default.getTasks(Number(leadsId));
                 yield api_1.default.updateDeals(updateDeal);
                 if (tasks.length === 0) {
-                    const a = [
+                    const deadline = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000);
+                    const task = [
                         {
                             "task_type_id": 3525410,
                             "text": "Проверить бюджет",
-                            "complete_till": Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000),
-                            "entity_id": Number(req.body.leads.update[0].id),
+                            "complete_till": deadline,
+                            "entity_id": Number(leadsId),
                             "entity_type": "leads",
                         }
                     ];
-                    yield api_1.default.createTask(a);
+                    yield api_1.default.createTask(task);
                 }
             }
             res.status(200).send('Ok');
         }
         catch (error) {
-            res.status(500).send('Error');
+            const axiosError = error;
+            const statusCode = ((_a = axiosError.response) === null || _a === void 0 ? void 0 : _a.status) || 500;
+            const errorMessage = ((_c = (_b = axiosError.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || 'Error';
+            res.status(statusCode).send(errorMessage);
         }
     }));
     app.post("/not", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

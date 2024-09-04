@@ -7,30 +7,30 @@ import api from './types/api'
 import logger from './types/logger';
 import config from './types/config';
 import calculateSum from './types/calculator'
+import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError } from './types/interfaces';
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-type CustomFieldValue = {
-    enum: string;
-}
-
-type CustomField = {
-    id: string;
-    values: CustomFieldValue[];
-}
-
 api.getAccessToken().then(() => {
 	app.get("/ping", (req: Request, res: Response) => res.send("pong " + Date.now()));
 
 	app.get("/install", (req: Request, res: Response) => {
 		console.log(req.body.leads);
-		res.send("OK");
+		res.send("Widget installed");
+	});
+
+	app.get("/uninstall", (req: Request, res: Response) => {
+		console.log(req.body.leads);
+		res.send("Widget uninstalled");
 	});
 
 	app.post("/switch",async (req: Request, res: Response) => {
+
+		const {id: leadsId, custom_fields, price: leadsPrice} = req.body.leads.update[0] 
+		const [{ id: fieldId, values }] = custom_fields;
 
 		try{
 			const map: Map<number, number> = new Map<number, number>([
@@ -42,18 +42,20 @@ api.getAccessToken().then(() => {
 		]); 
 		const services: number[] = [];
 
-		if (req.body.leads.update[0].custom_fields[0].id == '48677'){
-			req.body.leads.update[0].custom_fields[0].values.forEach((element : CustomFieldValue) => {
+		if (fieldId == '48677'){
+			values.forEach((element : CustomFieldValue) => {
 				services.push(Number(element.enum))
 			});
 		}
 
 
-		const deal: [] = (await api.getDeal(Number(req.body.leads.update[0].id), ["contacts"]) as any)._embedded.contacts[0].id
+		const dealResponse: ApiDealResponse = await api.getDeal(Number(leadsId), ["contacts"]) as ApiDealResponse
+		const deal = dealResponse._embedded.contacts[0].id;
 
-		const price: [] = (await api.getContact(Number(deal)) as any).custom_fields_values
+		const contactResponse: ApiContactResponse = await api.getContact(Number(deal)) as ApiContactResponse
+		const price = contactResponse.custom_fields_values;
 
-		const purchasedServices: {[key: string]: string} = {}
+		const purchasedServices: {[key: number]: string} = {}
 
 		price.forEach((element: any) => {
 			if([...map.values()].includes(element.field_id)){
@@ -62,34 +64,38 @@ api.getAccessToken().then(() => {
 		});
 
 		const budget: number = calculateSum(services, purchasedServices, map)
-
+			
 		const updateDeal: any[] = [{
-			"id": Number(req.body.leads.update[0].id),
+			"id": Number(leadsId),
 			"price": budget
 		}]
 
-		if(budget !== Number(req.body.leads.update[0].price)) {
-		let tasks: any[] = await api.getTasks(Number(req.body.leads.update[0].id))
+		if(budget !== Number(leadsPrice)) {
+		let tasks: Task[] = await api.getTasks(Number(leadsId))
 		await api.updateDeals(updateDeal)
 		if(tasks.length === 0){
-			const a: any[] = [
+			const deadline: number = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000)
+			const task: Task[] = [
 				{
 					"task_type_id": 3525410,
 					"text": "Проверить бюджет",
-					"complete_till": Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000),
-					"entity_id": Number(req.body.leads.update[0].id),
+					"complete_till": deadline,
+					"entity_id": Number(leadsId),
 					"entity_type": "leads",
 				}
 			]
 
-			await api.createTask(a)
+			await api.createTask(task)
 			}
 
 		}
 	
 		res.status(200).send('Ok')
-	} catch(error){
-		res.status(500).send('Error')
+	} catch(error: unknown){
+		const axiosError = error as ApiError;
+		const statusCode: number = axiosError.response?.status || 500;
+    	const errorMessage: string = axiosError.response?.data?.message || 'Error'
+		res.status(statusCode).send(errorMessage)
 	}
 	})
 
