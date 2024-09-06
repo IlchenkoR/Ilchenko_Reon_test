@@ -50,3 +50,13 @@ export type CustomFieldValue = {
 	  };
 	};
   }
+
+
+  export type Token = {
+	access_token: string;
+	refresh_token: string;
+  }
+  
+  export type Filters = {
+	[key: string]: string;
+  }

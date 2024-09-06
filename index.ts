@@ -3,10 +3,10 @@
  */
 
 import express, { Request, Response } from "express";
-import api from './types/api'
-import logger from './types/logger';
-import config from './types/config';
-import calculateSum from './types/calculator'
+import api from './api'
+import logger from './logger';
+import config from './config';
+import calculateSum from './calculator'
 import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
 
 const app = express();
@@ -18,12 +18,10 @@ api.getAccessToken().then(() => {
 	app.get("/ping", (req: Request, res: Response) => res.send("pong " + Date.now()));
 
 	app.get("/install", (req: Request, res: Response) => {
-		console.log(req.body.leads);
 		res.send("Widget installed");
 	});
 
 	app.get("/uninstall", (req: Request, res: Response) => {
-		console.log(req.body.leads);
 		res.send("Widget uninstalled");
 	});
 
@@ -99,7 +97,7 @@ api.getAccessToken().then(() => {
 	}
 	})
 
-	app.post("/not",async (req: Request, res: Response) => {
+	app.post("/note",async (req: Request, res: Response) => {
 		try{
 			if(req.body.task.update[0].action_close == 1 && req.body.task.update[0].text == 'Проверить бюджет'){
 				await api.addNote(Number(req.body.task.update[0].element_id))

@@ -8,7 +8,7 @@ import fs from 'fs';
 import logger from './logger';
 
 interface CustomFieldValue {
-	value: any;
+	value: string;
 	enum_id?: number;
   }
 

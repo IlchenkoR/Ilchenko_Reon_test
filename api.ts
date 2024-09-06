@@ -14,21 +14,13 @@ import fs from "fs";
 import axiosRetry from "axios-retry";
 import config from "./config";
 import logger from "./logger";
+import { Token, Filters } from './types/interfaces';
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 const AMO_TOKEN_PATH = "amo_token.json";
 
 const LIMIT = 200;	
-
-interface Token {
-	access_token: string;
-	refresh_token: string;
-  }
-  
-  interface Filters {
-	[key: string]: any;
-  }
 
 class Api {
 	public access_token: string | null = null;
@@ -75,7 +67,7 @@ class Api {
 			.catch((err) => {
 				logger.error(err.response.data);
 				throw err;
-			});
+			});	
 	};
 
 	public async getAccessToken(): Promise<any> {
@@ -123,7 +115,7 @@ class Api {
 	};
 	
 	// Получить сделку по id
-	public getDeal = this.authChecker((id: number, withParam: string[] = []): Promise<any> => {
+	public getDeal = this.authChecker((id: number, withParam: string[] = []): Promise<T> => {
 		return axios
 		  .get(
 			`${this.ROOT_PATH}/api/v4/leads/${id}?${querystring.encode({
@@ -146,8 +138,6 @@ class Api {
 		  with: ["contacts"],
 		  ...filters,
 		})}`;
-
-		console.log(url)
 
 		return axios
       		.get(url, {
