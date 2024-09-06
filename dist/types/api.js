@@ -33,7 +33,10 @@ class Api {
     constructor() {
         this.access_token = null;
         this.refresh_token = null;
-        this.ROOT_PATH = `https://${config_1.default.SUB_DOMAIN}.amocrm.ru`;
+        this.ROOT_PATH = ``;
+        this.setPath = () => {
+            this.ROOT_PATH = `https://${config_1.default.SUB_DOMAIN}.amocrm.ru`;
+        };
         this.authChecker = (request) => {
             return (...args) => {
                 if (!this.access_token) {
@@ -57,6 +60,7 @@ class Api {
             };
         };
         this.requestAccessToken = () => {
+            this.setPath();
             return axios_1.default
                 .post(`${this.ROOT_PATH}/oauth2/access_token`, {
                 client_id: config_1.default.CLIENT_ID,
@@ -70,7 +74,7 @@ class Api {
                 return res.data;
             })
                 .catch((err) => {
-                logger_1.default.error(err.response.data);
+                logger_1.default.error(err.message);
                 throw err;
             });
         };
