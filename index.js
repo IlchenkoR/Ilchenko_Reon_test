@@ -2,12 +2,12 @@
  * Основной модуль приложения - точка входа. 
  */
 
-const express = require("express");
-const api = require("./api");
-const logger = require("./logger");
-const config = require("./config");
-const calculateAge = require("./ageCalculator")
-const utils = require("./utils")
+import express from 'express';
+import api from './api'
+import logger from './logger';
+import config from './config';
+import calculateAge from './ageCalculator'
+import utils from './utils';
 
 const app = express();
 
@@ -18,7 +18,6 @@ api.getAccessToken().then(() => {
 	app.get("/ping", (req, res) => res.send("pong " + Date.now()));
 
 	app.post("/install", (req, res) => {
-		console.log(req.data);
 		res.send("OK");
 	});
 

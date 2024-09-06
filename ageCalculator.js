@@ -1,7 +1,7 @@
 function calculateAge(birthDate) {
 	const today = new Date()
 	const birth = new Date(birthDate * 1000)
-	let age = today.getFullYear() - birth.getFullYear()
+	const age = today.getFullYear() - birth.getFullYear()
 	const month = today.getMonth() - birth.getMonth()
 
 	if(month < 0 || (month == 0 && today.getDate() < birth.getDate)){
