@@ -20,25 +20,57 @@ const api_1 = __importDefault(require("./types/api"));
 const logger_1 = __importDefault(require("./types/logger"));
 const config_1 = __importDefault(require("./types/config"));
 const calculator_1 = __importDefault(require("./types/calculator"));
+const mongodb_1 = require("mongodb");
 const app = (0, express_1.default)();
+const uri = 'mongodb://localhost:27017';
+const client = new mongodb_1.MongoClient(uri);
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.get("/install", (req, res) => {
+app.get("/install", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const code = String(req.query.code);
     const ref = String(req.query.referer).split('.')[0];
+    const client_id = String(req.query.client_id);
     res.send("Widget installed");
     if (code) {
         config_1.default.AUTH_CODE = code;
         config_1.default.SUB_DOMAIN = ref;
+        config_1.default.CLIENT_ID = client_id;
+        try {
+            yield client.connect();
+            console.log('Connected to MongoDB');
+            const database = client.db('Widget');
+            const collection = database.collection('acc');
+            const result = yield collection.updateOne({ _id: client_id }, { $set: { ref: ref, code: code, stat: 1 } }, { upsert: true });
+            console.log(`Matched ${result.matchedCount} document(s)`);
+            console.log(`Modified ${result.modifiedCount} document(s)`);
+            console.log(`Upserted document id: ${result.upsertedId}`);
+        }
+        catch (err) {
+            console.error(err);
+        }
+        finally {
+            yield client.close();
+        }
     }
-    console.log(config_1.default);
     api_1.default.getAccessToken();
-});
+}));
 app.get("/ping", (req, res) => res.send("pong " + Date.now()));
-app.get("/uninstall", (req, res) => {
-    console.log(req.body.leads);
+app.get("/uninstall", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield client.connect();
+        console.log('Connected to MongoDB');
+        const database = client.db('Widget');
+        const collection = database.collection('acc');
+        const result = yield collection.updateOne({ _id: config_1.default.CLIENT_ID }, { $set: { code: config_1.default.AUTH_CODE, stat: 0 } });
+    }
+    catch (err) {
+        console.error(err);
+    }
+    finally {
+        yield client.close();
+    }
     res.send("Widget uninstalled");
-});
+}));
 app.post("/switch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const { id: leadsId, custom_fields, price: leadsPrice } = req.body.leads.update[0];
