@@ -1,6 +1,18 @@
 export type CustomFieldValue = {
 	enum: string;
   }
+
+  export type PriceInfo = {
+	field_id: number
+	values: Array<{
+		value: string
+	}>
+  }
+
+  export type DealsInfo = {
+	id: number,
+	price: number
+  }
   
   // Определите тип для ответа от API getDeal
   export type ApiDealResponse = {

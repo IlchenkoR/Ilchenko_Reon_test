@@ -7,7 +7,7 @@ import api from './types/api'
 import logger from './types/logger';
 import config from './types/config';
 import calculateSum from './types/calculator'
-import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError } from './types/interfaces';
+import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
 
 const app = express();
 
@@ -57,7 +57,7 @@ api.getAccessToken().then(() => {
 
 		const purchasedServices: {[key: number]: string} = {}
 
-		price.forEach((element: any) => {
+		price.forEach((element: PriceInfo) => {
 			if([...map.values()].includes(element.field_id)){
 				purchasedServices[element.field_id] = element.values[0].value
 			}
@@ -65,7 +65,7 @@ api.getAccessToken().then(() => {
 
 		const budget: number = calculateSum(services, purchasedServices, map)
 			
-		const updateDeal: any[] = [{
+		const updateDeal: DealsInfo[] = [{
 			"id": Number(leadsId),
 			"price": budget
 		}]
