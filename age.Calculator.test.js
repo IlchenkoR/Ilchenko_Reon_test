@@ -23,4 +23,12 @@ describe('calculateAge', () => {
 
         expect(age).toBe(0);
     });
+
+    it('Должен возвращать 0, если дата рождения сегодня', () => {
+        const today = new Date();
+        const birthDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() / 1000;
+        const age = calculateAge(birthDate);
+
+        expect(age).toBe(0);
+    });
 });

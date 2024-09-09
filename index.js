@@ -11,6 +11,9 @@ import utils from './utils';
 
 const app = express();
 
+const AGE_FIELD_ID = 20707;
+const BIRTHDAY_FIELD_ID = '10543'
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,14 +28,12 @@ api.getAccessToken().then(() => {
 		app.post("/contacts", async (req, res) => {
 
 		try {
-			const contact = req.body.contacts.add[0]
-			const ageField = 20707
-			const birthField = '10543'
-			const birthDate = contact.custom_fields.find(field => field.id === birthField).values[0]
+			const [contact] = req.body.contacts.add
+			const birthDate = contact.custom_fields.find(field => field.id === BIRTHDAY_FIELD_ID).values[0]
 
 			
 			if(birthDate){
-				const age = utils.makeField(ageField, calculateAge(birthDate))
+				const age = utils.makeField(AGE_FIELD_ID, calculateAge(birthDate))
 
 				const updateContact = [
 					{"id": Number(contact.id),
