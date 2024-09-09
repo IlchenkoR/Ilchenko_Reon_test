@@ -26,7 +26,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 api_1.default.getAccessToken().then(() => {
     app.get("/ping", (req, res) => res.send("pong " + Date.now()));
     app.get("/install", (req, res) => {
-        res.send("Widget installed");
+        res.status(200).send("Widget installed");
     });
     app.get("/uninstall", (req, res) => {
         res.send("Widget uninstalled");
@@ -49,7 +49,7 @@ api_1.default.getAccessToken().then(() => {
                     services.push(Number(element.enum));
                 });
             }
-            const dealResponse = yield api_1.default.getDeal(Number(leadsId), ["contacts"]);
+            const dealResponse = yield api_1.default.getDeal(leadsId, ["contacts"]);
             const deal = dealResponse._embedded.contacts[0].id;
             const contactResponse = yield api_1.default.getContact(Number(deal));
             const price = contactResponse.custom_fields_values;
@@ -71,7 +71,7 @@ api_1.default.getAccessToken().then(() => {
                     const deadline = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000);
                     const task = [
                         {
-                            "task_type_id": 3525410,
+                            "task_type_id": 2,
                             "text": "Проверить бюджет",
                             "complete_till": deadline,
                             "entity_id": Number(leadsId),
