@@ -26,7 +26,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 api_1.default.getAccessToken().then(() => {
     app.get("/ping", (req, res) => res.send("pong " + Date.now()));
     app.get("/install", (req, res) => {
-        res.send("Widget installed");
+        res.status(200).send("Widget installed");
     });
     app.get("/uninstall", (req, res) => {
         res.send("Widget uninstalled");

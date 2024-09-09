@@ -26,6 +26,7 @@ api.getAccessToken().then(() => {
 	});
 
 	app.post("/switch",async (req: Request, res: Response) => {
+
 		const {id: leadsId, custom_fields, price: leadsPrice} = req.body.leads.update[0] 
 		const [{ id: fieldId, values }] = custom_fields;
 
@@ -74,8 +75,8 @@ api.getAccessToken().then(() => {
 			const deadline: number = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000)
 			const task: Task[] = [
 				{
-					"task_type_id": 2,
-					"text": "Проверить бюджет",
+					"task_type_id": 3525410,
+					"text": "Проверить gsdfgdfgsdfgsdfg бюджет",
 					"complete_till": deadline,
 					"entity_id": Number(leadsId),
 					"entity_type": "leads",
