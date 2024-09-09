@@ -5,7 +5,6 @@ interface Config {
 	CLIENT_ID: string;
 	CLIENT_SECRET: string;
 	AUTH_CODE: string;
-	WIDGET_CODE: string;
 	REDIRECT_URI: string;
 	SUB_DOMAIN: string;
 	PORT: number;
@@ -13,12 +12,11 @@ interface Config {
 
 const config: Config = {
 	// данные для api amocrm
-	CLIENT_ID: "0253f711-f651-433e-887d-50166b5ad1e3",
-	CLIENT_SECRET: "gXGfuyl2UkHDpvsksqc8GPoeuUQjXL5Jk01ANiIi1QMhnHujmZi0d95pS6A5UBS5",
-	WIDGET_CODE: 'gcei19r8ifs6rqbi8qzf8rxklz53ov8mtq5vgvrw',
+	CLIENT_ID: "070f6f4c-012a-4abc-9b36-792f50390db2",
+	CLIENT_SECRET: "muUwIJydbyWOIqQgwUCtCVsrySGM5b7cPidf481iNZaW14ZLisbMtC2f9pqo4FTE",
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: "",
-	REDIRECT_URI: "https://deb9-77-95-90-50.ngrok-free.app/install",
+	REDIRECT_URI: "https://ece9-77-95-90-50.ngrok-free.app/install",
 	SUB_DOMAIN: "rilchenko",
 	// конфигурация сервера
 	PORT: 2000,

@@ -8,7 +8,7 @@ import logger from './logger';
 import config from './config';
 import calculateSum from './calculator'
 import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
-
+ 
 const app = express();
 
 app.use(express.json());
@@ -18,7 +18,7 @@ api.getAccessToken().then(() => {
 	app.get("/ping", (req: Request, res: Response) => res.send("pong " + Date.now()));
 
 	app.get("/install", (req: Request, res: Response) => {
-		res.send("Widget installed");
+		res.status(200).send("Widget installed");
 	});
 
 	app.get("/uninstall", (req: Request, res: Response) => {

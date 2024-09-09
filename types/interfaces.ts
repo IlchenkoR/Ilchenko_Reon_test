@@ -13,8 +13,7 @@ export type CustomFieldValue = {
 	id: number,
 	price: number
   }
-  
-  // Определите тип для ответа от API getDeal
+
   export type ApiDealResponse = {
 	_embedded: {
 	  contacts: Array<{
@@ -23,7 +22,6 @@ export type CustomFieldValue = {
 	};
   }
   
-  // Определите тип для ответа от API getContact
   export type ApiContactResponse = {
 	custom_fields_values: Array<{
 	  field_id: number;
@@ -33,7 +31,7 @@ export type CustomFieldValue = {
 	}>;
   }
   
-  // Определите тип для задачи
+
   export type Task = {
 	task_type_id: number;
 	text: string;

@@ -16,21 +16,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const api_1 = __importDefault(require("./types/api"));
-const logger_1 = __importDefault(require("./types/logger"));
-const config_1 = __importDefault(require("./types/config"));
-const calculator_1 = __importDefault(require("./types/calculator"));
+const api_1 = __importDefault(require("./api"));
+const logger_1 = __importDefault(require("./logger"));
+const config_1 = __importDefault(require("./config"));
+const calculator_1 = __importDefault(require("./calculator"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 api_1.default.getAccessToken().then(() => {
     app.get("/ping", (req, res) => res.send("pong " + Date.now()));
     app.get("/install", (req, res) => {
-        console.log(req.body.leads);
         res.send("Widget installed");
     });
     app.get("/uninstall", (req, res) => {
-        console.log(req.body.leads);
         res.send("Widget uninstalled");
     });
     app.post("/switch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -92,7 +90,7 @@ api_1.default.getAccessToken().then(() => {
             res.status(statusCode).send(errorMessage);
         }
     }));
-    app.post("/not", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    app.post("/note", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             if (req.body.task.update[0].action_close == 1 && req.body.task.update[0].text == 'Проверить бюджет') {
                 yield api_1.default.addNote(Number(req.body.task.update[0].element_id));
