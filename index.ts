@@ -42,7 +42,7 @@ api.getAccessToken().then(() => {
 
 		if (fieldId == '48677'){
 			values.forEach((element : CustomFieldValue) => {
-				services.push(Number(element.enum))
+				services.push(Number(element.value))
 			});
 		}
 
@@ -76,7 +76,7 @@ api.getAccessToken().then(() => {
 			const task: Task[] = [
 				{
 					"task_type_id": 3525410,
-					"text": "Проверить gsdfgdfgsdfgsdfg бюджет",
+					"text": "Проверить бюджет",
 					"complete_till": deadline,
 					"entity_id": Number(leadsId),
 					"entity_type": "leads",

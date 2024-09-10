@@ -14,7 +14,7 @@ import fs from "fs";
 import axiosRetry from "axios-retry";
 import config from "./config";
 import logger from "./logger";
-import { Token, Filters, ApiError, ApiDealResponse } from './types/interfaces';
+import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactResponse, Task } from './types/interfaces';
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
@@ -134,7 +134,7 @@ class Api {
 	  });
 
 	// Получить сделки по фильтрам
-	public getDeals = this.authChecker(({ page = 1, limit = LIMIT, filters }: { page?: number; limit?: number; filters?: Filters }): Promise<any[]> => {
+	public getDeals = this.authChecker(({ page = 1, limit = LIMIT, filters }: { page?: number; limit?: number; filters?: Filters }): Promise<ApiDealResponse> => {
 		const url: string = `${this.ROOT_PATH}/api/v4/leads?${querystring.stringify({
 		  page,
 		  limit,
@@ -154,8 +154,8 @@ class Api {
   });
 
 	// Обновить сделки
-	public updateDeals = this.authChecker((data: any): Promise<any> => {
-		return axios.patch(`${this.ROOT_PATH}/api/v4/leads`, [].concat(data), {
+	public updateDeals = this.authChecker((data: DealsInfo[]): Promise<ApiDealResponse> => {
+		return axios.patch(`${this.ROOT_PATH}/api/v4/leads`, data, {
 			headers: {
 				Authorization: `Bearer ${this.access_token}`,
 			},
@@ -163,7 +163,7 @@ class Api {
 	});
 
 	// Получить контакт по id
-	public getContact = this.authChecker((id: number): Promise<any> => {
+	public getContact = this.authChecker((id: number): Promise<ApiContactResponse> => {
 		return axios
 		  .get(`${this.ROOT_PATH}/api/v4/contacts/${id}?${querystring.stringify({
 			with: ["leads"]
@@ -175,18 +175,10 @@ class Api {
 		  .then((res: AxiosResponse) => res.data);
 	  });
 
-	// Обновить контакты
-	public updateContacts = this.authChecker((data: any): Promise<any> => {
-		return axios.patch(`${this.ROOT_PATH}/api/v4/contacts`, [].concat(data), {
-			headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			},
-		});
-	});
 
 	//Вывод задач
-	public createTask = this.authChecker((data: any) => {
-		return axios.post(`${this.ROOT_PATH}/api/v4/tasks`, [].concat(data), {
+	public createTask = this.authChecker((data: Task[]): Promise<ApiContactResponse> => {
+		return axios.post(`${this.ROOT_PATH}/api/v4/tasks`, data, {
 			headers: {
 				Authorization: `Bearer ${this.access_token}`,
 			},

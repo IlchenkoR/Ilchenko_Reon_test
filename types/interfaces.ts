@@ -1,6 +1,4 @@
-export type CustomFieldValue = {
-	enum: string;
-  }
+
 
   export type PriceInfo = {
 	field_id: number
@@ -58,3 +56,15 @@ export type CustomFieldValue = {
   export type Filters = {
 	[key: string]: string;
   }
+
+  export type CustomFieldValue = {
+	value: string;
+	enum_id?: number;
+  }
+
+
+  export type CustomField = {
+	field_id?: number;
+	id?: number;
+	values: CustomFieldValue[];
+	}
