@@ -1,7 +1,7 @@
 /**
  * Модуль содержит ключи интеграции и другие конфигурации
  */
-interface Config {
+type Config = {
 	CLIENT_ID: string;
 	CLIENT_SECRET: string;
 	AUTH_CODE: string;
