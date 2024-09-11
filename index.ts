@@ -2,7 +2,7 @@
  * Основной модуль приложения - точка входа. 
  */
 
-import express, { Request, Response } from "express";
+import express, { Request, Response } from 'express';
 import api from './api'
 import logger from './logger';
 import config from './config';

@@ -28,7 +28,6 @@
 	  }>;
 	}>;
   }
-  
 
   export type Task = {
 	task_type_id: number;
@@ -36,6 +35,32 @@
 	complete_till: number;
 	entity_id: number;
 	entity_type: string;
+  }
+
+  export type ApiTaskResponse = {
+	_embedded: {
+		tasks: Array<{
+		  id: number;
+		  task_type_id: number;
+		  text: string;
+		  complete_till: number;
+		  entity_id: number;
+		  entity_type: string;
+		}>;
+	  };
+  }
+
+
+  export type ApiNoteResponse = {
+	_embedded: {
+		notes: Array<{
+		  id: number;
+		  note_type: string;
+		  params: Array<{
+			  text: string;
+		  }>,
+		}>;
+	  };
   }
 
   export type ApiError = {
@@ -68,3 +93,8 @@
 	id?: number;
 	values: CustomFieldValue[];
 	}
+
+	export type DealFieldValue = {
+		value: string;
+		enum: number;
+	  }

@@ -1,10 +1,10 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response } from 'express';
 import api from './api'
 import calculateSum from './calculator'
-import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
+import { ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo, DealFieldValue } from './types/interfaces';
 
 
-const dealHandler = async (req: Request, res: Response) => {
+const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 	const [{ id: fieldId, values }] = custom_fields;
@@ -20,8 +20,8 @@ const dealHandler = async (req: Request, res: Response) => {
 	const services: number[] = [];
 
 	if (fieldId == '48677'){
-		values.forEach((element : CustomFieldValue) => {
-			services.push(Number(element.value))
+		values.forEach((element : DealFieldValue) => {
+			services.push(Number(element.enum))
 		});
 	}
 
@@ -48,7 +48,7 @@ const dealHandler = async (req: Request, res: Response) => {
 	}]
 
 	if(budget !== Number(leadsPrice)) {
-	let tasks: Task[] = await api.getTasks(Number(leadsId))
+	const tasks: Task[] = await api.getTasks(Number(leadsId))
 	await api.updateDeals(updateDeal)
 	if(tasks.length === 0){
 		const deadline: number = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000)
@@ -76,12 +76,14 @@ const dealHandler = async (req: Request, res: Response) => {
 }}
 
 
-const noteHandler = async (req: Request, res: Response) => {
-	const [updatedTask] = req.body.task.update
-
+const noteHandler = async (req: Request, res: Response) : Promise<void>=> {
 	try{
-		if(updatedTask.action_close === 1 && updatedTask.text === 'Проверить бюджет'){
-			await api.addNote(Number(updatedTask.element_id))
+		const { task } = req.body;
+		const [updatedTask] = task.update;
+		const { action_close, text, element_id } = updatedTask;
+
+        if (action_close == 1 && text == 'Проверить бюджет') {
+            await api.addNote(Number(element_id));
 		}
 		res.status(200).send('Ok');
 	} catch(error){

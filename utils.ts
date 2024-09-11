@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import logger from './logger'; 
-import { CustomField, CustomFieldValue } from './types/interfaces';
+import { CustomField } from './types/interfaces';
 
 
 
@@ -73,9 +73,9 @@ const makeField = (field_id: number, value: string, enum_id: number) : CustomFie
 const bulkOperation = async <T>(
 	reqest: (data: T[]) => Promise<void>,
 	data: T[],
-	chunkSize: number,
+	chunkSize: number, 
 	operationName = "bulk"
-) => {
+) : Promise<void>=> {
 	let failed: T[] = [];
 	if (data.length) {
 		logger.debug(`Старт операции ${operationName}`);
