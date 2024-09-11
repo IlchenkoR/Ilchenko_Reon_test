@@ -4,17 +4,16 @@ import calculateSum from './calculator'
 import logger from './logger';
 import config from './config';
 import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
-import { MongoClient, Db, Collection, Document } from 'mongodb'
+import { MongoClient, Db, Collection, Document, ObjectId } from 'mongodb'
 
 const uri = 'mongodb://localhost:27017';
 const client = new MongoClient(uri);
 
 
-const dbConnection =  async (req: Request, res: Response) => {
+const dbConnection =  async (req: Request, res: Response) : Promise<void> => {
 	const code  = String(req.query.code)
 	const ref = String(req.query.referer).split('.')[0]
 	const client_id = String(req.query.client_id)
-	res.send("Widget installed")
 	if(code){
 		config.AUTH_CODE = code
 		config.SUB_DOMAIN = ref
@@ -27,11 +26,11 @@ const dbConnection =  async (req: Request, res: Response) => {
 			const collection: Collection<Document> = database.collection('acc');
 		
 			const result = await collection.updateOne(
-				{_id: client_id as any},
+				{_id: new ObjectId(client_id)},
 				{ $set: {ref: ref, code: code, stat: 1}},
 				{upsert: true}
 			  );
-			
+			res.send("Widget installed")
 		  } catch (err) {
 			logger.error(err);
 		  } finally {
@@ -41,7 +40,7 @@ const dbConnection =  async (req: Request, res: Response) => {
 	api.getAccessToken()
 }
 
-const dbDisconnecrtion = async (req: Request, res: Response) => {
+const dbDisconnecrtion = async (req: Request, res: Response) : Promise<void>=> {
 	try {
 		await client.connect();
 		logger.debug('Connected to MongoDB');
@@ -50,7 +49,7 @@ const dbDisconnecrtion = async (req: Request, res: Response) => {
 		const collection: Collection<Document> = database.collection('acc');
 	
 		const result = await collection.updateOne(
-			{_id: config.CLIENT_ID as any},
+			{_id: new ObjectId(config.CLIENT_ID)},
 			{ $set: {code: "", stat: 0}}
 		  );
 	  } catch (err) {
@@ -62,7 +61,7 @@ const dbDisconnecrtion = async (req: Request, res: Response) => {
 }
 
 
-const dealHandler = async (req: Request, res: Response) => {
+const dealHandler = async (req: Request, res: Response) : Promise<void> => {
 
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 	const [{ id: fieldId, values }] = custom_fields;
@@ -106,7 +105,7 @@ const dealHandler = async (req: Request, res: Response) => {
 	}]
 
 	if(budget !== Number(leadsPrice)) {
-	let tasks: Task[] = await api.getTasks(Number(leadsId))
+	const tasks: Task[] = await api.getTasks(Number(leadsId))
 	await api.updateDeals(updateDeal)
 	if(tasks.length === 0){
 		const deadline: number = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000)
@@ -133,7 +132,7 @@ const dealHandler = async (req: Request, res: Response) => {
 	res.status(statusCode).send(errorMessage)
 }}
 
-const noteHandler = async (req: Request, res: Response) => {
+const noteHandler = async (req: Request, res: Response) : Promise<void> => {
 	const [updatedTask] = req.body.task.update
 
 	try{
