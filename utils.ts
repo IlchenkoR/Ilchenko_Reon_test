@@ -6,18 +6,8 @@
 
 import fs from 'fs';
 import logger from './logger';
+import { CustomField, CustomFieldValue } from './types/interfaces';
 
-interface CustomFieldValue {
-	value: any;
-	enum_id?: number;
-  }
-
-
-interface CustomField {
-	field_id?: number;
-	id?: number;
-	values: CustomFieldValue[];
-	}
 /**
  * Функция извлекает значение из id поля, массива полей custom_fields сущности amoCRM
  *
@@ -25,7 +15,7 @@ interface CustomField {
  * @param {*} fieldId - id поля из которого нужно получить значение;
  * @returns значение поля
  */
-const getFieldValue = (customFields: CustomField[] | undefined, fieldId: number) => {
+const getFieldValue = (customFields: CustomField[] | undefined, fieldId: number) : string | undefined => {
 	const field = customFields
 		? customFields.find((item) => String(item.field_id || item.id) === String(fieldId))
 		: undefined;
@@ -41,7 +31,7 @@ const getFieldValue = (customFields: CustomField[] | undefined, fieldId: number)
  * @param {*} fieldId - id поля из которого нужно получить значения;
  * @returns массив значений поля
  */
-const getFieldValues = (customFields: CustomField[] | undefined, fieldId: number) => {
+const getFieldValues = (customFields: CustomField[] | undefined, fieldId: number) : string[]=> {
 	const field = customFields
 		? customFields.find((item) => String(item.field_id || item.id) === String(fieldId))
 		: undefined;
@@ -56,7 +46,7 @@ const getFieldValues = (customFields: CustomField[] | undefined, fieldId: number
  * @param {*} enum_id - В случае, если поле списковое или мультисписковое, то для указания нужного значения указывается данный параметр, т.е. id - варианта списка;
  * @returns типовой объект с данными о поле, который необходимо передать в amoCRM.
  */
-const makeField = (field_id: number, value: any, enum_id: number) => {
+const makeField = (field_id: number, value: string, enum_id: number) : CustomField | undefined=> {
 	if (value === undefined || value === null) {
 		return undefined;
 	}
@@ -120,7 +110,7 @@ const bulkOperation = async <T>(
  */
 const getAllPages = async <T>(request:(params: {page: number, limit: number}) => Promise<T[]>, page = 1, limit = 200): Promise<T[]> => {
 	try {
-		console.log(`Загрузка страницы ${page}`);
+		logger.debug(`Загрузка страницы ${page}`);
 		const res = await request({ page, limit });
 		if (res.length === limit) {
 			const next = await getAllPages(request, page + 1, limit);

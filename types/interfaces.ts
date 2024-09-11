@@ -1,8 +1,15 @@
-export type CustomFieldValue = {
-	enum: string;
+export type PriceInfo = {
+	field_id: number
+	values: Array<{
+		value: string
+	}>
   }
-  
-  // Определите тип для ответа от API getDeal
+
+  export type DealsInfo = {
+	id: number,
+	price: number
+  }
+
   export type ApiDealResponse = {
 	_embedded: {
 	  contacts: Array<{
@@ -11,7 +18,6 @@ export type CustomFieldValue = {
 	};
   }
   
-  // Определите тип для ответа от API getContact
   export type ApiContactResponse = {
 	custom_fields_values: Array<{
 	  field_id: number;
@@ -21,7 +27,7 @@ export type CustomFieldValue = {
 	}>;
   }
   
-  // Определите тип для задачи
+
   export type Task = {
 	task_type_id: number;
 	text: string;
@@ -38,3 +44,25 @@ export type CustomFieldValue = {
 	  };
 	};
   }
+
+
+  export type Token = {
+	access_token: string;
+	refresh_token: string;
+  }
+  
+  export type Filters = {
+	[key: string]: string;
+  }
+
+  export type CustomFieldValue = {
+	value: string;
+	enum_id?: number;
+  }
+
+
+  export type CustomField = {
+	field_id?: number;
+	id?: number;
+	values: CustomFieldValue[];
+	}
