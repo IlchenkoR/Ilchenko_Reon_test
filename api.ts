@@ -8,17 +8,17 @@
  * Модуль используется для работы в NodeJS.
  */
 
-import axios, { AxiosResponse } from "axios";
-import querystring from "querystring";
-import fs from "fs";
-import axiosRetry from "axios-retry";
-import config from "./config";
-import logger from "./logger";
-import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactResponse, Task } from './types/interfaces';
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
+import querystring from 'querystring';
+import fs from 'fs';
+import axiosRetry from 'axios-retry';
+import config from './config';
+import logger from './logger';
+import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactResponse, Task, ApiTaskResponse, ApiNoteResponse} from './types/interfaces';
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-const AMO_TOKEN_PATH = "amo_token.json";
+const AMO_TOKEN_PATH = 'amo_token.json';
 
 const LIMIT = 200;	
 
@@ -26,6 +26,14 @@ class Api {
 	public access_token: string | null = null;
     public refresh_token: string | null = null;
     public ROOT_PATH: string = ``;
+
+	private getConfig(): AxiosRequestConfig {
+        return {
+            headers: {
+                Authorization: `Bearer ${this.access_token}`,
+            },
+        };
+    }
 
 	public setPath = () => {
 		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
@@ -128,11 +136,7 @@ class Api {
 			`${this.ROOT_PATH}/api/v4/leads/${id}?${querystring.encode({
 			  with: withParam.join(","),
 			})}`,
-			{
-			  headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			  },
-			}
+			this.getConfig()
 		  )
 		  .then((res: AxiosResponse) => res.data);
 	  });
@@ -146,14 +150,8 @@ class Api {
 		  ...filters,
 		})}`;
 
-		console.log(url)
-
 		return axios
-      		.get(url, {
-        		headers: {
-          			Authorization: `Bearer ${this.access_token}`,
-        	},
-      	})
+      		.get(url, this.getConfig())
       .then((res: AxiosResponse) => {
         return res.data ? res.data._embedded.leads : [];
       });
@@ -161,11 +159,7 @@ class Api {
 
 	// Обновить сделки
 	public updateDeals = this.authChecker((data: DealsInfo[]): Promise<ApiDealResponse> => {
-		return axios.patch(`${this.ROOT_PATH}/api/v4/leads`, data, {
-			headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			},
-		});
+		return axios.patch(`${this.ROOT_PATH}/api/v4/leads`, data, this.getConfig());
 	});
 
 	// Получить контакт по id
@@ -173,34 +167,22 @@ class Api {
 		return axios
 		  .get(`${this.ROOT_PATH}/api/v4/contacts/${id}?${querystring.stringify({
 			with: ["leads"]
-		  })}`, {
-			headers: {
-			  Authorization: `Bearer ${this.access_token}`,
-			},
-		  })
+		  })}`, this.getConfig())
 		  .then((res: AxiosResponse) => res.data);
 	  });
 
 	//Вывод задач
-	public createTask = this.authChecker((data: Task[]) : Promise<ApiContactResponse>=> {
-		return axios.post(`${this.ROOT_PATH}/api/v4/tasks`, data, {
-			headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			},
-		});
+	public createTask = this.authChecker((data: Task[]) : Promise<ApiTaskResponse>=> {
+		return axios.post(`${this.ROOT_PATH}/api/v4/tasks`, data, this.getConfig());
 	});
 
 
 	//Получение задач
-	public getTasks = this.authChecker((entity) => {
+	public getTasks = this.authChecker((entity) : Promise<Task[]> => {
 		return axios
 		  .get(
 			`${this.ROOT_PATH}/api/v4/tasks?filter[task_type][]=3525410&filter[is_completed]=0&filter[entity_id][]=${entity}`,
-			{
-			  headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			  },
-			}
+			this.getConfig()
 		  )
 		  .then((res: AxiosResponse) => {
 			if (res.data && res.data._embedded && Array.isArray(res.data._embedded.tasks)) {
@@ -216,7 +198,7 @@ class Api {
 	});
 
 	// Добавление примечания
-	public addNote = this.authChecker((entity_id: number) => {
+	public addNote = this.authChecker((entity_id: number) : Promise<ApiNoteResponse> => {
 		return axios.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`,  [
 				{
 					"note_type": "common",
@@ -225,11 +207,7 @@ class Api {
 					 }
 				}	
 			]
-		,{
-			headers: {
-				Authorization: `Bearer ${this.access_token}`,
-			},
-		});
+		,this.getConfig());
 	});
 
 

@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import logger from './logger';
-import { CustomField, CustomFieldValue } from './types/interfaces';
+import { CustomField } from './types/interfaces';
 
 /**
  * Функция извлекает значение из id поля, массива полей custom_fields сущности amoCRM
@@ -73,7 +73,7 @@ const bulkOperation = async <T>(
 	data: T[],
 	chunkSize: number,
 	operationName = "bulk"
-) => {
+) : Promise<void> => {
 	let failed: T[] = [];
 	if (data.length) {
 		logger.debug(`Старт операции ${operationName}`);
