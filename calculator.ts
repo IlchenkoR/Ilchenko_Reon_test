@@ -1,16 +1,16 @@
-function calculateSum(services: number[], purchasedServices: { [key: string]: string }, map: Map<number, number>): number {
-    const sum = services.reduce((acc, num) => {
-        const key = map.get(num);
+function calculateSum(services: number[], purchasedServices: { [key: string]: number }, map: Map<string, number[]>): number {
+    const mapEntries = Array.from(map.entries());
+    return services.reduce((acc, num) => {
+        const key = mapEntries.find(([_, idsArray]) => idsArray.includes(num))?.[1][1]
         if (key !== undefined) {
-            const value = purchasedServices[key.toString()];
+            const value = purchasedServices[key.toString()]
+            console.log(value)
             if (value !== undefined) {
-                return acc + parseInt(value, 10);
+                return acc + value
             }
         }
         return acc;
     }, 0);
-    
-    return sum;
 }
   
 export default calculateSum;

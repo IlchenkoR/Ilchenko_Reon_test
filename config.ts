@@ -16,7 +16,7 @@ const config: Config = {
 	CLIENT_SECRET: 'muUwIJydbyWOIqQgwUCtCVsrySGM5b7cPidf481iNZaW14ZLisbMtC2f9pqo4FTE',
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: '',
-	REDIRECT_URI: 'https://7776-87-117-59-213.ngrok-free.app',
+	REDIRECT_URI: 'https://0cdb-46-226-163-197.ngrok-free.app',
 	SUB_DOMAIN: 'rilchenko',
 	// конфигурация сервера
 	PORT: 2000,
