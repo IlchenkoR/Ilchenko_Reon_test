@@ -8,6 +8,7 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 	const [{ id: fieldId, values }] = custom_fields;
+	const timeSec = 24 * 60 * 60 * 1000
 
 	try{
 		const map: Map<number, number> = new Map<number, number>([
@@ -26,19 +27,18 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 	}
 
 
-	const dealResponse: ApiDealResponse = await api.getDeal(leadsId, ["contacts"]) as ApiDealResponse
+	const dealResponse = await api.getDeal(leadsId, ["contacts"]) as ApiDealResponse
 	const deal = dealResponse._embedded.contacts[0].id;
 
-	const contactResponse: ApiContactResponse = await api.getContact(Number(deal)) as ApiContactResponse
+	const contactResponse = await api.getContact(Number(deal)) as ApiContactResponse
 	const price = contactResponse.custom_fields_values;
 
-	const purchasedServices: {[key: number]: string} = {}
-
-	price.forEach((element: PriceInfo) => {
-		if([...map.values()].includes(element.field_id)){
-			purchasedServices[element.field_id] = element.values[0].value
+	const purchasedServices = price.reduce<{[key: number]: string}>((acc, element) => {
+		if ([...map.values()].includes(element.field_id)) {
+			acc[element.field_id] = element.values[0].value;
 		}
-	});
+		return acc;
+	}, {});
 
 	const budget: number = calculateSum(services, purchasedServices, map)
 		
@@ -51,7 +51,7 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 	const tasks: Task[] = await api.getTasks(Number(leadsId))
 	await api.updateDeals(updateDeal)
 	if(tasks.length === 0){
-		const deadline: number = Math.floor((new Date((new Date()).getTime() + 24 * 60 * 60 * 1000)).getTime() / 1000)
+		const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
 		const task: Task[] = [
 			{
 				"task_type_id": 3525410,
@@ -81,8 +81,9 @@ const noteHandler = async (req: Request, res: Response) : Promise<void>=> {
 		const { task } = req.body;
 		const [updatedTask] = task.update;
 		const { action_close, text, element_id } = updatedTask;
+		const noteText = 'Проверить бюджет'
 
-        if (action_close == 1 && text == 'Проверить бюджет') {
+        if (Number(action_close) === 1 && text === noteText) {
             await api.addNote(Number(element_id));
 		}
 		res.status(200).send('Ok');

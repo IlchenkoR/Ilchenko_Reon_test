@@ -8,7 +8,7 @@
  * Модуль используется для работы в NodeJS.
  */
 
-import axios, { AxiosResponse, AxiosRequestConfig} from 'axios';
+import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
 import fs from 'fs';
 import axiosRetry from 'axios-retry';
@@ -18,14 +18,14 @@ import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactRespons
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-const AMO_TOKEN_PATH = "amo_token.json";
+const AMO_TOKEN_PATH = 'amo_token.json';
 
 const LIMIT = 200;	
 
 class Api {
 	public access_token: string | null = null;
     public refresh_token: string | null = null;
-    public readonly ROOT_PATH: string = `https://${config.SUB_DOMAIN}.amocrm.ru`;
+    public ROOT_PATH: string = ``;
 
 	private getConfig(): AxiosRequestConfig {
         return {
@@ -34,8 +34,11 @@ class Api {
             },
         };
     }
-	
 
+	public setPath = (): void => {
+		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
+	}
+	
 	public authChecker = <T, U>(request: (...args: T[]) => Promise<U>): (...args: T[]) => Promise<U> => {
 		return (...args: T[]): Promise<U> => {
 			if (!this.access_token) {
@@ -60,6 +63,7 @@ class Api {
 	};
 
 	public requestAccessToken = (): Promise<Token> => {
+		this.setPath()
 		return axios
 			.post(`${this.ROOT_PATH}/oauth2/access_token`, {
 				client_id: config.CLIENT_ID,
@@ -73,16 +77,16 @@ class Api {
 				return res.data;
 			})
 			.catch((err) => {
-				logger.error(err.response.data);
+				logger.error(err.message);
 				throw err;
-			});	
+			});
 	};
 
 	public async getAccessToken(): Promise<Token> {
 		if (this.access_token) {
 			return {
 				access_token: this.access_token,
-				refresh_token: ''
+				refresh_token: this.refresh_token
 			}
 		}
 		try {
@@ -167,31 +171,26 @@ class Api {
 		  .then((res: AxiosResponse) => res.data);
 	  });
 
-
 	//Вывод задач
-	public createTask = this.authChecker((data: Task[]) : Promise<ApiTaskResponse> => {
+	public createTask = this.authChecker((data: Task[]) : Promise<ApiTaskResponse>=> {
 		return axios.post(`${this.ROOT_PATH}/api/v4/tasks`, data, this.getConfig());
 	});
 
 
 	//Получение задач
-	public getTasks = this.authChecker((entity) : Promise<Task[]>  => {
+	public getTasks = this.authChecker((entity) : Promise<Task[]> => {
 		return axios
 		  .get(
 			`${this.ROOT_PATH}/api/v4/tasks?filter[task_type][]=3525410&filter[is_completed]=0&filter[entity_id][]=${entity}`,
 			this.getConfig()
 		  )
 		  .then((res: AxiosResponse) => {
-			if (res.data && res.data._embedded && Array.isArray(res.data._embedded.tasks)) {
+			if ( res?.data?._embedded?.tasks?.length)  {
 			  return res.data._embedded.tasks;
 			} else {
 			  return [];
 			}
 		  })
-		  .catch((error) => {
-			logger.error("Ошибка при получении задач:", error);
-			throw error;
-		  });
 	});
 
 	// Добавление примечания
