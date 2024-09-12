@@ -40,6 +40,7 @@ class Api {
 	}
 	
 	public authChecker = <T, U>(request: (...args: T[]) => Promise<U>): (...args: T[]) => Promise<U> => {
+		this.setPath()
 		return (...args: T[]): Promise<U> => {
 			if (!this.access_token) {
 				return this.getAccessToken().then(() => this.authChecker(request)(...args));
