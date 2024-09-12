@@ -74,7 +74,7 @@ export type PriceInfo = {
 
   export type Token = {
 	access_token: string;
-	refresh_token: string;
+	refresh_token: string | null;
   }
   
   export type Filters = {

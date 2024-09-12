@@ -35,7 +35,7 @@ class Api {
         };
     }
 
-	public setPath = () => {
+	public setPath = () : void => {
 		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
 	}
 	
@@ -86,8 +86,8 @@ class Api {
 		if (this.access_token) {
 			return {
 				access_token: this.access_token,
-				refresh_token: ''
-			}
+				refresh_token: this.refresh_token
+				}
 		}
 		try {
 			const content = fs.readFileSync(AMO_TOKEN_PATH, 'utf-8');
@@ -185,16 +185,12 @@ class Api {
 			this.getConfig()
 		  )
 		  .then((res: AxiosResponse) => {
-			if (res.data && res.data._embedded && Array.isArray(res.data._embedded.tasks)) {
+			if ( res?.data?._embedded?.tasks?.length) {
 			  return res.data._embedded.tasks;
 			} else {
 			  return [];
 			}
 		  })
-		  .catch((error) => {
-			logger.error("Ошибка при получении задач:", error);
-			throw error;
-		  });
 	});
 
 	// Добавление примечания

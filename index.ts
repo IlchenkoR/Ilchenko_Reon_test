@@ -5,7 +5,7 @@
 import express, { Request, Response } from 'express';
 import logger from './logger';
 import config from './config';
-import {noteHandler, dealHandler, dbConnection, dbDisconnecrtion} from './functions'
+import {noteHandler, dealHandler, dbConnection, dbDisconnection} from './handlers'
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.get("/install", dbConnection);
 
 app.get("/ping", (req: Request, res: Response) => res.send('pong ' + Date.now()));
 
-app.get("/uninstall", dbDisconnecrtion);
+app.get("/uninstall", dbDisconnection);
 
 app.post("/switch", dealHandler)
 

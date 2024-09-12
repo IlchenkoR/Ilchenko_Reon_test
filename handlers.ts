@@ -1,63 +1,28 @@
 import express, { Request, Response } from "express";
 import api from './api'
 import calculateSum from './calculator'
-import logger from './logger';
-import config from './config';
 import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
-import { MongoClient, Db, Collection, Document, ObjectId } from 'mongodb'
+import Database from './database'
 
-const uri = 'mongodb://localhost:27017';
-const client = new MongoClient(uri);
+const dbConnection = async (req: Request, res: Response): Promise<void> => {
+    const code = String(req.query.code);
+    const ref = String(req.query.referer).split('.')[0];
+    const client_id = String(req.query.client_id);
 
+    if (code) {
+        const db = Database.getInstance();
+        await db.updateAccount(client_id, ref, code, 1);
+        res.send("Widget installed");
+    }
 
-const dbConnection =  async (req: Request, res: Response) : Promise<void> => {
-	const code  = String(req.query.code)
-	const ref = String(req.query.referer).split('.')[0]
-	const client_id = String(req.query.client_id)
-	if(code){
-		config.AUTH_CODE = code
-		config.SUB_DOMAIN = ref
-		config.CLIENT_ID = client_id
-		try {
-			await client.connect();
-			logger.debug('Connected to MongoDB');
-		
-			const database: Db = client.db('Widget');
-			const collection: Collection<Document> = database.collection('acc');
-		
-			const result = await collection.updateOne(
-				{_id: new ObjectId(client_id)},
-				{ $set: {ref: ref, code: code, stat: 1}},
-				{upsert: true}
-			  );
-			res.send("Widget installed")
-		  } catch (err) {
-			logger.error(err);
-		  } finally {
-			await client.close();
-		  }
-		}
-	api.getAccessToken()
+    api.getAccessToken();
 }
 
-const dbDisconnecrtion = async (req: Request, res: Response) : Promise<void>=> {
-	try {
-		await client.connect();
-		logger.debug('Connected to MongoDB');
-	
-		const database: Db = client.db('Widget');
-		const collection: Collection<Document> = database.collection('acc');
-	
-		const result = await collection.updateOne(
-			{_id: new ObjectId(config.CLIENT_ID)},
-			{ $set: {code: "", stat: 0}}
-		  );
-	  } catch (err) {
-		logger.error(err);
-	  } finally {
-		await client.close();
-	  }
-	res.send("Widget uninstalled")
+const dbDisconnection = async (req: Request, res: Response): Promise<void> => {
+    const client_id = String(req.query.client_id);
+    const db = Database.getInstance();
+    await db.clearAccount(client_id);
+    res.send("Widget uninstalled");
 }
 
 
@@ -65,6 +30,7 @@ const dealHandler = async (req: Request, res: Response) : Promise<void> => {
 
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 	const [{ id: fieldId, values }] = custom_fields;
+	const leadType = 48677
 
 	try{
 		const map: Map<number, number> = new Map<number, number>([
@@ -76,17 +42,17 @@ const dealHandler = async (req: Request, res: Response) : Promise<void> => {
 	]); 
 	const services: number[] = [];
 
-	if (fieldId == '48677'){
+	if (Number(fieldId) === leadType){
 		values.forEach((element : CustomFieldValue) => {
 			services.push(Number(element.value))
 		});
 	}
 
 
-	const dealResponse: ApiDealResponse = await api.getDeal(leadsId, ["contacts"]) as ApiDealResponse
+	const dealResponse = await api.getDeal(leadsId, ["contacts"]) as ApiDealResponse
 	const dealId = dealResponse._embedded.contacts[0].id;
 
-	const contactResponse: ApiContactResponse = await api.getContact(Number(dealId)) as ApiContactResponse
+	const contactResponse = await api.getContact(Number(dealId)) as ApiContactResponse
 	const price = contactResponse.custom_fields_values;
 
 	const purchasedServices: {[key: number]: string} = {}
@@ -148,5 +114,5 @@ const noteHandler = async (req: Request, res: Response) : Promise<void> => {
 export {noteHandler, 
 		dealHandler,
 	 	dbConnection,
-		dbDisconnecrtion
+		dbDisconnection
 		};
