@@ -10,7 +10,7 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 
-	if(!custom_fields?.length) {
+	if(custom_fields?.length == 0) {
 		await api.updateDeals([{
 			"id": Number(leadsId),
 			"price": 0
@@ -65,7 +65,8 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 	if(budget !== Number(leadsPrice)) {
 	const tasks: Task[] = await api.getTasks(Number(leadsId))
 	await api.updateDeals(updateDeal)
-	if(tasks.length === 0){
+
+	if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
 		const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
 		const task: Task[] = [
 			{
