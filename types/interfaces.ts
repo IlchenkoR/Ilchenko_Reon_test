@@ -1,3 +1,4 @@
+import exp from "constants"
 
 
   export type PriceInfo = {
@@ -35,6 +36,13 @@
 	complete_till: number;
 	entity_id: number;
 	entity_type: string;
+  }
+
+  export type Note = {
+	note_type: string;
+	params:{
+	  text: string;
+	};
   }
 
   export type ApiTaskResponse = {

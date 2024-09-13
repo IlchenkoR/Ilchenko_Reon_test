@@ -4,7 +4,6 @@ function calculateSum(services: number[], purchasedServices: { [key: string]: nu
         const key = mapEntries.find(([_, idsArray]) => idsArray.includes(num))?.[1][1]
         if (key !== undefined) {
             const value = purchasedServices[key.toString()]
-            console.log(value)
             if (value !== undefined) {
                 return acc + value
             }
