@@ -14,7 +14,7 @@ import fs from 'fs';
 import axiosRetry from 'axios-retry';
 import config from './config';
 import logger from './logger';
-import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactResponse, Task, ApiTaskResponse, ApiNoteResponse} from './types/interfaces';
+import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactResponse, Task, ApiTaskResponse, ApiNoteResponse, Note} from './types/interfaces';
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
@@ -39,9 +39,9 @@ class Api {
 		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
 	}
 	
-	public authChecker = <T, U>(request: (...args: T[]) => Promise<U>): (...args: T[]) => Promise<U> => {
+	public authChecker = <T extends unknown[], U>(request: (...args: T) => Promise<U>): (...args: T) => Promise<U> => {
 		this.setPath()
-		return (...args: T[]): Promise<U> => {
+		return (...args: T): Promise<U> => {
 			if (!this.access_token) {
 				return this.getAccessToken().then(() => this.authChecker(request)(...args));
 			}
@@ -195,19 +195,9 @@ class Api {
 	});
 
 	// Добавление примечания
-	public addNote = this.authChecker((entity_id: number) : Promise<ApiNoteResponse> => {
-		return axios.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`,  [
-				{
-					"note_type": "common",
-					"params": {
-						"text": "Бюджет проверен, ошибок нет"
-					 }
-				}	
-			]
-		,this.getConfig());
+	public addNote = this.authChecker((entity_id: number, data: Note[]) : Promise<ApiNoteResponse> => {
+		return axios.post(`${this.ROOT_PATH}/api/v4/leads/${entity_id}/notes`, data ,this.getConfig());
 	});
-
-
 }
 
 export default new Api();

@@ -1,7 +1,7 @@
 /**
  * Модуль содержит ключи интеграции и другие конфигурации
  */
-interface Config {
+type Config = {
 	CLIENT_ID: string;
 	CLIENT_SECRET: string;
 	AUTH_CODE: string;
@@ -12,12 +12,12 @@ interface Config {
 
 const config: Config = {
 	// данные для api amocrm
-	CLIENT_ID: '',
-	CLIENT_SECRET: 'gXGfuyl2UkHDpvsksqc8GPoeuUQjXL5Jk01ANiIi1QMhnHujmZi0d95pS6A5UBS5',
+	CLIENT_ID: '070f6f4c-012a-4abc-9b36-792f50390db2',
+	CLIENT_SECRET: 'muUwIJydbyWOIqQgwUCtCVsrySGM5b7cPidf481iNZaW14ZLisbMtC2f9pqo4FTE',
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: '',
-	REDIRECT_URI: 'https://dfc2-77-95-90-50.ngrok-free.app/install',
-	SUB_DOMAIN: '',
+	REDIRECT_URI: 'https://dopj1pe2um3b.share.zrok.io/install',
+	SUB_DOMAIN: 'rilchenko',
 	// конфигурация сервера
 	PORT: 2000,
 }; 

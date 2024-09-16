@@ -1,4 +1,7 @@
-export type PriceInfo = {
+import exp from "constants"
+
+
+  export type PriceInfo = {
 	field_id: number
 	values: Array<{
 		value: string
@@ -11,6 +14,7 @@ export type PriceInfo = {
   }
 
   export type ApiDealResponse = {
+	price: number,
 	_embedded: {
 	  contacts: Array<{
 		id: number;
@@ -26,7 +30,6 @@ export type PriceInfo = {
 	  }>;
 	}>;
   }
-  
 
   export type Task = {
 	task_type_id: number;
@@ -34,6 +37,13 @@ export type PriceInfo = {
 	complete_till: number;
 	entity_id: number;
 	entity_type: string;
+  }
+
+  export type Note = {
+	note_type: string;
+	params:{
+	  text: string;
+	};
   }
 
   export type ApiTaskResponse = {

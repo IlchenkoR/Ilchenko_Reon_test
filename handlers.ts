@@ -1,8 +1,10 @@
 import express, { Request, Response } from "express";
 import api from './api'
 import calculateSum from './calculator'
-import { CustomFieldValue, ApiDealResponse, ApiContactResponse, Task, ApiError, DealsInfo, PriceInfo } from './types/interfaces';
+import { Note, Task, ApiError, DealsInfo, DealFieldValue } from './types/interfaces';
 import Database from './database'
+
+const noteText = 'Проверить бюджет'
 
 const dbConnection = async (req: Request, res: Response): Promise<void> => {
     const code = String(req.query.code);
@@ -26,39 +28,65 @@ const dbDisconnection = async (req: Request, res: Response): Promise<void> => {
 }
 
 
-const dealHandler = async (req: Request, res: Response) : Promise<void> => {
-
+const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
-	const [{ id: fieldId, values }] = custom_fields;
-	const leadType = 48677
+
 	const timeSec = 24 * 60 * 60 * 1000
+	const leadType = 48677
+	const taskType = 3525410	
+	const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
+	const task: Task[] = [
+		{
+			"task_type_id": taskType,
+			"text": noteText,
+			"complete_till": deadline,
+			"entity_id": Number(leadsId),
+			"entity_type": "leads",
+		}
+	]
+	const tasks: Task[] = await api.getTasks(Number(leadsId))
 
 	try{
+	if(!custom_fields || !custom_fields.length) {
+		if(leadsPrice != 0){
+			await api.updateDeals([{
+				"id": Number(leadsId),
+				"price": 0
+			}])
+			if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
+				await api.createTask(task)
+				}
+			}
+		res.status(200).send('Ok');
+		return
+	}
+
+	const [{ id: fieldId, values }] = custom_fields;
 		const map: Map<string, number[]> = new Map<string, number[]>([
 			['firstServiceIds', [25661, 20707]],
 			['secondServiceIds', [25663, 48669]], 
 			['thirdServiceIds', [25665, 48671]],  
 			['fourthServiceIds', [25667, 48673]], 
 			['fifthServiceIds', [25669, 48675]]   
-		]);
+		]); 
 	const services: number[] = [];
 
 	if (Number(fieldId) === leadType){
-		values.forEach((element : CustomFieldValue) => {
-			services.push(Number(element.value))
+		values.forEach((element : DealFieldValue) => {
+			services.push(Number(element.enum))
 		});
 	}
 
 
-	const dealResponse = await api.getDeal(leadsId, ["contacts"]) as ApiDealResponse
-	const dealId = dealResponse._embedded.contacts[0].id;
+	const dealResponse = await api.getDeal(leadsId, ["contacts"])
+	const deal = dealResponse._embedded.contacts[0].id;
 
-	const contactResponse = await api.getContact(Number(dealId)) as ApiContactResponse
+	const contactResponse = await api.getContact(Number(deal))
 	const price = contactResponse.custom_fields_values;
 
 	const purchasedServices = price.reduce<{[key: string]: number}>((acc, element) => {
-		const isFieldIdInMap = Array.from(map.values()).some(idsArray => idsArray.includes(element.field_id));
-		if (isFieldIdInMap) {
+		const fieldIdSet = new Set<number>(Array.from(map.values()).flat());
+		if (fieldIdSet.has(element.field_id)) {
 			acc[element.field_id] = Number(element.values[0].value);
 		}
 		return acc;
@@ -66,29 +94,21 @@ const dealHandler = async (req: Request, res: Response) : Promise<void> => {
 
 	const budget: number = calculateSum(services, purchasedServices, map)
 		
-	const updateDeal: DealsInfo[] = [{
-		"id": Number(leadsId),
-		"price": budget
-	}]
+	if(budget !== dealResponse.price) {
 
-	if(budget !== Number(leadsPrice)) {
-	const tasks: Task[] = await api.getTasks(Number(leadsId))
+		console.log(budget)
+		console.log(leadsPrice)
+
+		const updateDeal: DealsInfo[] = [{
+			"id": Number(leadsId),
+			"price": budget
+		}]
 	await api.updateDeals(updateDeal)
-	if(tasks.length === 0){
-		const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
-		const task: Task[] = [
-			{
-				"task_type_id": 3525410,
-				"text": "Проверить бюджет",
-				"complete_till": deadline,
-				"entity_id": Number(leadsId),
-				"entity_type": "leads",
-			}
-		]
 
+
+	if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
 		await api.createTask(task)
 		}
-
 	}
 
 	res.status(200).send('Ok')
@@ -99,15 +119,23 @@ const dealHandler = async (req: Request, res: Response) : Promise<void> => {
 	res.status(statusCode).send(errorMessage)
 }}
 
-const noteHandler = async (req: Request, res: Response) : Promise<void> => {
-	const { task } = req.body;
-	const [updatedTask] = task.update;
-	const { action_close, text, element_id } = updatedTask;
-	const noteText = 'Проверить бюджет'
-
+const noteHandler = async (req: Request, res: Response) : Promise<void>=> {
 	try{
-		if (Number(action_close) === 1 && text === noteText) {
-			await api.addNote(Number(element_id))
+		const { task } = req.body;
+		const [updatedTask] = task.update;
+		const { action_close, text, element_id } = updatedTask;
+
+		const note: Note[] = [
+			{
+				"note_type": "common",
+				"params":{
+					'text': "Бюджет проверен, ошибок нет"
+				 }
+			}
+		]
+
+        if (Number(action_close) === 1 && text === noteText) {
+            await api.addNote(Number(element_id), note);
 		}
 		res.status(200).send('Ok');
 	} catch(error){
@@ -115,6 +143,8 @@ const noteHandler = async (req: Request, res: Response) : Promise<void> => {
 	}
 	
 }
+
+
 export {noteHandler, 
 		dealHandler,
 	 	dbConnection,
