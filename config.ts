@@ -12,11 +12,11 @@ type Config = {
 
 const config: Config = {
 	// данные для api amocrm
-	CLIENT_ID: '070f6f4c-012a-4abc-9b36-792f50390db2',
-	CLIENT_SECRET: 'muUwIJydbyWOIqQgwUCtCVsrySGM5b7cPidf481iNZaW14ZLisbMtC2f9pqo4FTE',
+	CLIENT_ID: '0253f711-f651-433e-887d-50166b5ad1e3',
+	CLIENT_SECRET: 'gXGfuyl2UkHDpvsksqc8GPoeuUQjXL5Jk01ANiIi1QMhnHujmZi0d95pS6A5UBS5',
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: '',
-	REDIRECT_URI: 'https://dopj1pe2um3b.share.zrok.io/install',
+	REDIRECT_URI: 'https://1034-77-95-90-50.ngrok-free.app/install',
 	SUB_DOMAIN: '',
 	// конфигурация сервера
 	PORT: 2000,

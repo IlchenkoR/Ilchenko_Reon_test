@@ -27,11 +27,11 @@ class Database {
         return Database.instance;
     }
 
-    public async updateAccount(clientId: string, ref: string, code: string, stat: number): Promise<void> {
+    public async updateAccount(clientId: string, access_token: string, refresh_token: string | null, ref: string, stat: number): Promise<void> {
         try {
             await AccountModel.updateOne(
                 { _id: clientId },
-                { $set: { ref, code, stat } },
+                { $set: { ref, access_token, refresh_token, stat } },
                 { upsert: true }
             );
         } catch (err) {

@@ -3,6 +3,7 @@ import api from './api'
 import calculateSum from './calculator'
 import { Note, Task, ApiError, DealsInfo, DealFieldValue } from './types/interfaces';
 import Database from './database'
+import config from './config';
 
 const noteText = 'Проверить бюджет'
 
@@ -10,14 +11,15 @@ const dbConnection = async (req: Request, res: Response): Promise<void> => {
     const code = String(req.query.code);
     const ref = String(req.query.referer).split('.')[0];
     const client_id = String(req.query.client_id);
+	api.setPath(ref)
+	api.setCode(code)
 
+	const tokens = await api.getAccessToken();
     if (code) {
         const db = Database.getInstance();
-        await db.updateAccount(client_id, ref, code, 1);
+        await db.updateAccount(client_id, tokens.access_token, tokens.refresh_token, ref, 1);
         res.send("Widget installed");
     }
-
-    api.getAccessToken();
 }
 
 const dbDisconnection = async (req: Request, res: Response): Promise<void> => {
@@ -44,6 +46,8 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 			"entity_type": "leads",
 		}
 	]
+
+	console.log(req.body.leads.update[0])
 	const tasks: Task[] = await api.getTasks(Number(leadsId))
 
 	try{
@@ -93,6 +97,8 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 	}, {});
 
 	const budget: number = calculateSum(services, purchasedServices, map)
+
+	console.log(budget)
 		
 	if(budget !== dealResponse.price) {
 

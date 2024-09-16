@@ -16,8 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/install", dbConnection);
 
-app.get("/ping", (req: Request, res: Response) => res.send('pong ' + Date.now()));
-
 app.get("/uninstall", dbDisconnection);
 
 app.post("/switch", dealHandler)

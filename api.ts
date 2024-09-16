@@ -11,6 +11,7 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
 import fs from 'fs';
+import path from 'node:path' 
 import axiosRetry from 'axios-retry';
 import config from './config';
 import logger from './logger';
@@ -18,7 +19,7 @@ import { Token, Filters, ApiError, ApiDealResponse, DealsInfo, ApiContactRespons
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-const AMO_TOKEN_PATH = 'amo_token.json';
+const AMO_TOKEN_PATH = path.resolve(__dirname, "amo_token.json");
 
 const LIMIT = 200;	
 
@@ -26,6 +27,7 @@ class Api {
 	public access_token: string | null = null;
     public refresh_token: string | null = null;
     public ROOT_PATH: string = ``;
+	public CODE: string = ''
 
 	private getConfig(): AxiosRequestConfig {
         return {
@@ -35,12 +37,15 @@ class Api {
         };
     }
 
-	public setPath = () : void => {
-		this.ROOT_PATH = `https://${config.SUB_DOMAIN}.amocrm.ru`
+	public setPath = (path: string) : void => {
+		this.ROOT_PATH = `https://${path}.amocrm.ru`
+	}
+
+	public setCode = (code: string) : void => {
+		this.CODE = code
 	}
 	
 	public authChecker = <T extends unknown[], U>(request: (...args: T) => Promise<U>): (...args: T) => Promise<U> => {
-		this.setPath()
 		return (...args: T): Promise<U> => {
 			if (!this.access_token) {
 				return this.getAccessToken().then(() => this.authChecker(request)(...args));
@@ -61,16 +66,15 @@ class Api {
 				throw err;
 			});
 		};
-	};
+	}; 
 
 	public requestAccessToken = (): Promise<Token> => {
-		this.setPath()
 		return axios
 			.post(`${this.ROOT_PATH}/oauth2/access_token`, {
 				client_id: config.CLIENT_ID,
 				client_secret: config.CLIENT_SECRET,
 				grant_type: "authorization_code",
-				code: config.AUTH_CODE,
+				code: this.CODE,	
 				redirect_uri: config.REDIRECT_URI,
 			})
 			.then((res) => {
@@ -100,6 +104,7 @@ class Api {
 			logger.error(`Ошибка при чтении файла ${AMO_TOKEN_PATH}`, error);
 			logger.debug("Попытка заново получить токен");
 			const token = await this.requestAccessToken();
+			console.log(token)
 			fs.writeFileSync(AMO_TOKEN_PATH, JSON.stringify(token));
 			this.access_token = token.access_token;
 			this.refresh_token = token.refresh_token;
