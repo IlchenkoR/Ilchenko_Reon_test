@@ -17,7 +17,7 @@ const config: Config = {
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: '',
 	REDIRECT_URI: 'https://dopj1pe2um3b.share.zrok.io/install',
-	SUB_DOMAIN: 'rilchenko',
+	SUB_DOMAIN: '',
 	// конфигурация сервера
 	PORT: 2000,
 }; 
