@@ -16,7 +16,7 @@ const config: Config = {
 	CLIENT_SECRET: 'muUwIJydbyWOIqQgwUCtCVsrySGM5b7cPidf481iNZaW14ZLisbMtC2f9pqo4FTE',
 	//AUTH_CODE живет 20 минут, при перезапуске скрипта нужно брать новый
 	AUTH_CODE: '',
-	REDIRECT_URI: 'https://dopj1pe2um3b.share.zrok.io/install',
+	REDIRECT_URI: 'https://34j3v0jgc1wt.share.zrok.io/install',
 	SUB_DOMAIN: 'rilchenko',
 	// конфигурация сервера
 	PORT: 2000,

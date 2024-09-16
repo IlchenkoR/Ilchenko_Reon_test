@@ -14,6 +14,7 @@ import exp from "constants"
   }
 
   export type ApiDealResponse = {
+	price: number,
 	_embedded: {
 	  contacts: Array<{
 		id: number;

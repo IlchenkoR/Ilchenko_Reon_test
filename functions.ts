@@ -6,25 +6,39 @@ import { Note, Task, ApiError, DealsInfo, DealFieldValue } from './types/interfa
 const noteText = 'Проверить бюджет'
 
 const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
-
-
 	const [{id: leadsId, custom_fields, price: leadsPrice}] = req.body.leads.update
 
-	if(custom_fields?.length == 0) {
-		await api.updateDeals([{
-			"id": Number(leadsId),
-			"price": 0
-		}])
+	const timeSec = 24 * 60 * 60 * 1000
+	const leadType = 48677
+	const taskType = 3525410	
+	const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
+	const task: Task[] = [
+		{
+			"task_type_id": taskType,
+			"text": noteText,
+			"complete_till": deadline,
+			"entity_id": Number(leadsId),
+			"entity_type": "leads",
+		}
+	]
+	const tasks: Task[] = await api.getTasks(Number(leadsId))
+
+	try{
+	if(!custom_fields || !custom_fields.length) {
+		if(leadsPrice != 0){
+			await api.updateDeals([{
+				"id": Number(leadsId),
+				"price": 0
+			}])
+			if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
+				await api.createTask(task)
+				}
+			}
+		res.status(200).send('Ok');
 		return
 	}
 
 	const [{ id: fieldId, values }] = custom_fields;
-	const timeSec = 24 * 60 * 60 * 1000
-	const leadType = 48677
-	const taskType = 3525410
-	
-
-	try{
 		const map: Map<string, number[]> = new Map<string, number[]>([
 			['firstServiceIds', [25661, 20707]],
 			['secondServiceIds', [25663, 48669]], 
@@ -57,30 +71,21 @@ const dealHandler = async (req: Request, res: Response) : Promise<void>=> {
 
 	const budget: number = calculateSum(services, purchasedServices, map)
 		
-	const updateDeal: DealsInfo[] = [{
-		"id": Number(leadsId),
-		"price": budget
-	}]
+	if(budget !== dealResponse.price) {
 
-	if(budget !== Number(leadsPrice)) {
-	const tasks: Task[] = await api.getTasks(Number(leadsId))
+		console.log(budget)
+		console.log(leadsPrice)
+
+		const updateDeal: DealsInfo[] = [{
+			"id": Number(leadsId),
+			"price": budget
+		}]
 	await api.updateDeals(updateDeal)
 
-	if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
-		const deadline: number = Math.floor((new Date((new Date()).getTime() + timeSec)).getTime() / 1000)
-		const task: Task[] = [
-			{
-				"task_type_id": taskType,
-				"text": noteText,
-				"complete_till": deadline,
-				"entity_id": Number(leadsId),
-				"entity_type": "leads",
-			}
-		]
 
+	if(tasks.length === 0 || !tasks.some(el => el.text === noteText)){
 		await api.createTask(task)
 		}
-
 	}
 
 	res.status(200).send('Ok')
